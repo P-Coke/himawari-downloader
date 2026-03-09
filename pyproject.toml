@@ -1,0 +1,72 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "himawari-downloader"
+version = "0.1.0"
+description = "Himawari-8/9 downloader and file query SDK for FTP and S3."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+  { name = "zq200" }
+]
+keywords = ["himawari", "satellite", "ftp", "s3", "downloader", "jaxa", "noaa"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+]
+dependencies = [
+  "fsspec",
+  "PySocks",
+  "tqdm",
+]
+
+[project.optional-dependencies]
+s3 = [
+  "s3fs",
+]
+ftp-netcdf = [
+  "numpy",
+  "xarray",
+  "h5netcdf",
+  "h5py",
+]
+all = [
+  "s3fs",
+  "numpy",
+  "xarray",
+  "h5netcdf",
+  "h5py",
+]
+dev = [
+  "s3fs",
+  "numpy",
+  "xarray",
+  "h5netcdf",
+  "h5py",
+  "pytest",
+  "build",
+  "twine",
+]
+
+[project.urls]
+Homepage = "https://github.com/P-Coke/himawari-downloader"
+Repository = "https://github.com/P-Coke/himawari-downloader"
+Issues = "https://github.com/P-Coke/himawari-downloader/issues"
+
+[project.scripts]
+himawari-download = "himawari_downloader.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["himawari_downloader*"]
