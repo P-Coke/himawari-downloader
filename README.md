@@ -1,5 +1,7 @@
 # himawari-downloader
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 `himawari-downloader` is a Python SDK and CLI for querying and downloading Himawari-8/9 data from FTP and S3.
 
 ## Features
@@ -114,6 +116,68 @@ params = DownloadParams(
 )
 ```
 
+## Band mapping and parameter quick reference
+
+Band and channel names:
+
+- Use `B01` to `B16` in `bands`
+- If you already know `C07`, `C14` style names from other tools, map them directly to `B07`, `B14`
+- For FTP NetCDF subset download, use NetCDF variable names in `target_vars`, not `bands`
+
+Typical NetCDF variable mapping:
+
+- `B07` -> `tbb_07`
+- `B14` -> `tbb_14`
+
+Important `QueryParams` fields:
+
+- `source`: `ftp` or `s3`
+- `satellite`:
+  - FTP examples usually use `H08` or `H09`
+  - S3 examples usually use `HIMAWARI-8` or `HIMAWARI-9`
+- `product_level`:
+  - `L1B` for radiance segments
+  - `L2` for derived products
+- `product`:
+  - FTP HSD usually uses `Rad`
+  - FTP NetCDF currently uses `NetCDF`
+  - S3 L2 examples include `CMSK`, `CHGT`, `CPHS`, `RRQPE`
+- `sector`: `FLDK`, `Japan`, `Target`
+- `data_format`: FTP only, `hsd` or `netcdf`
+- `mode`: `links`, `timestamps`, `dates`, `range`, `latest`, `closest`, `previous`, `next`
+- `bands`: tuple of `Bxx`, for example `("B07", "B14")`
+- `scene_abbr`: optional regional scene filter like `R1`, `R2`, `R3`
+
+Important `DownloadParams` fields:
+
+- `out_dir`: output directory
+- `max_workers`: number of concurrent downloads
+- `retries`: retry count
+- `skip_existing`: skip local files if they already exist
+- `proxy`: `ProxyConfig(...)`
+- `ftp_block_size`: FTP read block size
+- `netcdf_subset`: FTP NetCDF subset configuration
+
+Important `NetcdfSubset` fields:
+
+- `bbox_lat`: latitude bounds
+- `bbox_lon`: longitude bounds
+- `target_vars`: NetCDF variable names such as `("tbb_07",)`
+- `whole_file`: disable subsetting and download the entire file
+- `compression_level`: output NetCDF compression level
+- `fallback_full_download`: if subset download fails, try full download
+
+Detailed tutorial:
+
+- [English tutorial](docs/TUTORIAL.md)
+- [简体中文教程](docs/TUTORIAL.zh-CN.md)
+
+The tutorial also includes:
+
+- product capability matrix
+- cookbook recipes by task
+- FAQ and common error guide
+
 ## CLI
 
 ```bash
@@ -128,6 +192,10 @@ himawari-download find \
   --dates 2025-03-19
 ```
 
+More CLI and task-oriented examples are documented in:
+
+- [English tutorial](docs/TUTORIAL.md)
+
 ## Test
 
 ```bash
@@ -141,16 +209,3 @@ python -m build
 python -m twine check dist/*
 ```
 
-## Release
-
-GitHub repository:
-
-- `https://github.com/P-Coke/himawari-downloader`
-
-PyPI publishing is configured through GitHub Actions trusted publishing.
-
-To release:
-
-1. Push changes to `main`
-2. Create and push a version tag like `v0.1.0`
-3. GitHub Actions will build and publish to PyPI

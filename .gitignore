@@ -12,3 +12,5 @@ dist/
 
 .vscode/
 .pytest_cache/
+
+LocalDoc/
