@@ -2,7 +2,31 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
+[![PyPI version](https://img.shields.io/pypi/v/himawari-downloader.svg)](https://pypi.org/project/himawari-downloader/)
+[![Python versions](https://img.shields.io/pypi/pyversions/himawari-downloader.svg)](https://pypi.org/project/himawari-downloader/)
+[![CI](https://github.com/P-Coke/himawari-downloader/actions/workflows/ci.yml/badge.svg)](https://github.com/P-Coke/himawari-downloader/actions/workflows/ci.yml)
+[![Publish PyPI](https://github.com/P-Coke/himawari-downloader/actions/workflows/publish-pypi.yml/badge.svg)](https://github.com/P-Coke/himawari-downloader/actions/workflows/publish-pypi.yml)
+[![License](https://img.shields.io/pypi/l/himawari-downloader.svg)](https://github.com/P-Coke/himawari-downloader/blob/main/LICENSE)
+
 `himawari-downloader` is a Python SDK and CLI for querying and downloading Himawari-8/9 data from FTP and S3.
+
+## Quick Links
+
+| English | 简体中文 |
+| --- | --- |
+| [README](README.md) | [中文说明](README.zh-CN.md) |
+| [Tutorial](docs/TUTORIAL.md) | [中文教程](docs/TUTORIAL.zh-CN.md) |
+| [GitHub repository](https://github.com/P-Coke/himawari-downloader) | [PyPI package](https://pypi.org/project/himawari-downloader/) |
+
+## Documentation
+
+- [Installation](#installation)
+- [Python usage](#python-usage)
+- [Band mapping and parameter quick reference](#band-mapping-and-parameter-quick-reference)
+- [CLI](#cli)
+- [English tutorial](docs/TUTORIAL.md)
+- [简体中文教程](docs/TUTORIAL.zh-CN.md)
+- [FAQ, capability matrix, and cookbook](docs/TUTORIAL.md#11-faq-and-common-errors)
 
 ## Features
 
@@ -209,3 +233,26 @@ python -m build
 python -m twine check dist/*
 ```
 
+## Release
+
+GitHub repository:
+
+- `https://github.com/P-Coke/himawari-downloader`
+
+PyPI publishing is configured through GitHub Actions trusted publishing.
+
+To release:
+
+1. Push changes to `main`
+2. Create and push a version tag like `v0.1.0`
+3. GitHub Actions will build and publish to PyPI
+
+## Acknowledgments
+
+This project was developed with design inspiration from
+[`ghiggi/himawari_api`](https://github.com/ghiggi/himawari_api), especially around
+Himawari file discovery workflows and query semantics such as `latest`,
+`closest`, `previous`, and `next`.
+
+`himawari_api` is distributed under the MIT License. This project is an
+independent implementation and does not vendor or copy that codebase.

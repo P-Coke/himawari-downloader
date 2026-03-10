@@ -60,6 +60,7 @@ dev = [
 Homepage = "https://github.com/P-Coke/himawari-downloader"
 Repository = "https://github.com/P-Coke/himawari-downloader"
 Issues = "https://github.com/P-Coke/himawari-downloader/issues"
+Documentation = "https://github.com/P-Coke/himawari-downloader/blob/main/docs/TUTORIAL.md"
 
 [project.scripts]
 himawari-download = "himawari_downloader.cli:main"

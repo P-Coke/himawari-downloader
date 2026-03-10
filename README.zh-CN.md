@@ -2,7 +2,31 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
+[![PyPI version](https://img.shields.io/pypi/v/himawari-downloader.svg)](https://pypi.org/project/himawari-downloader/)
+[![Python versions](https://img.shields.io/pypi/pyversions/himawari-downloader.svg)](https://pypi.org/project/himawari-downloader/)
+[![CI](https://github.com/P-Coke/himawari-downloader/actions/workflows/ci.yml/badge.svg)](https://github.com/P-Coke/himawari-downloader/actions/workflows/ci.yml)
+[![Publish PyPI](https://github.com/P-Coke/himawari-downloader/actions/workflows/publish-pypi.yml/badge.svg)](https://github.com/P-Coke/himawari-downloader/actions/workflows/publish-pypi.yml)
+[![License](https://img.shields.io/pypi/l/himawari-downloader.svg)](https://github.com/P-Coke/himawari-downloader/blob/main/LICENSE)
+
 `himawari-downloader` 是一个用于查询和下载 Himawari-8/9 卫星数据的 Python SDK 和 CLI，支持 FTP 与 S3 两类数据源。
+
+## 快速入口
+
+| English | 简体中文 |
+| --- | --- |
+| [README](README.md) | [中文说明](README.zh-CN.md) |
+| [Tutorial](docs/TUTORIAL.md) | [中文教程](docs/TUTORIAL.zh-CN.md) |
+| [GitHub repository](https://github.com/P-Coke/himawari-downloader) | [PyPI package](https://pypi.org/project/himawari-downloader/) |
+
+## 文档导航
+
+- [安装](#安装)
+- [Python 使用示例](#python-使用示例)
+- [波段映射与参数速查](#波段映射与参数速查)
+- [CLI](#cli)
+- [English tutorial](docs/TUTORIAL.md)
+- [简体中文教程](docs/TUTORIAL.zh-CN.md)
+- [FAQ、能力矩阵与 cookbook](docs/TUTORIAL.zh-CN.md#11-faq-与常见报错)
 
 ## 功能特性
 
@@ -209,3 +233,26 @@ python -m build
 python -m twine check dist/*
 ```
 
+## 发布
+
+GitHub 仓库：
+
+- `https://github.com/P-Coke/himawari-downloader`
+
+PyPI 发布通过 GitHub Actions Trusted Publishing 自动完成。
+
+发布步骤：
+
+1. 将变更推送到 `main`
+2. 创建并推送版本标签，例如 `v0.1.0`
+3. GitHub Actions 会自动构建并发布到 PyPI
+
+## 致谢与引用说明
+
+本项目在设计上参考了
+[`ghiggi/himawari_api`](https://github.com/ghiggi/himawari_api)，尤其是
+Himawari 文件发现流程，以及 `latest`、`closest`、`previous`、`next`
+这类查询语义的设计思路。
+
+`himawari_api` 采用 MIT License。本项目是独立实现，没有直接 vendor
+或复制该项目源码。
