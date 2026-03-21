@@ -87,7 +87,8 @@ class FTPBackend(BaseBackend):
             paths = self._build_candidates(query, data_format, sector, timestamps)
         else:
             raise UnsupportedOperationError(f"FTP backend does not support mode '{query.mode}'.")
-        if data_format == "netcdf":
+        # Keep links mode offline-friendly for tests and explicit user-provided paths.
+        if data_format == "netcdf" and mode != "links":
             paths = self._filter_existing_paths(paths)
         return [parse_remote_file("ftp", path) for path in paths]
 
@@ -174,6 +175,8 @@ class FTPBackend(BaseBackend):
         if subset is None:
             self._download_binary(remote, out_path, params)
             return
+        if not subset.whole_file and (subset.bbox_lat is None or subset.bbox_lon is None):
+            raise ConfigurationError("NetCDF subset requires bbox_lat and bbox_lon.")
         fs = self._get_fs()
         with self._open(fs, remote, params) as file_obj:
             ds = xr.open_dataset(file_obj, engine="h5netcdf", chunks={}, decode_timedelta=False)
@@ -187,8 +190,6 @@ class FTPBackend(BaseBackend):
                     raise ConfigurationError("No target variables found in dataset.")
                 target_ds = ds[variables]
                 if not subset.whole_file:
-                    if subset.bbox_lat is None or subset.bbox_lon is None:
-                        raise ConfigurationError("NetCDF subset requires bbox_lat and bbox_lon.")
                     if "latitude" not in ds.coords or "longitude" not in ds.coords:
                         raise ConfigurationError("latitude/longitude coordinates not found")
                     self._validate_japan_bbox(remote, subset.bbox_lat, subset.bbox_lon)
