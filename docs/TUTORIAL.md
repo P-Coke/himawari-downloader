@@ -18,6 +18,14 @@ This guide explains band mapping and the main configuration parameters in `himaw
 - cookbook
 - FAQ and common errors
 
+## 0. Changes in v0.1.2
+
+- FTP whole-file NetCDF download now uses a direct FTP binary transfer path.
+- FTP NetCDF query candidates are filtered to existing remote files before return.
+- `DownloadParams` now supports progress callbacks through `progress_callback`.
+- FTP NetCDF supports full-disk variable export via:
+  - `NetcdfSubset(whole_file=True, target_vars=(...))`
+
 ## 1. Two kinds of names
 
 Keep these two categories separate:
@@ -186,6 +194,7 @@ Main fields:
 - `whole_file`
 - `compression_level`
 - `fallback_full_download`
+- `whole_file=True` with `target_vars=(...)` can be used to export selected variables without bbox cropping
 
 Example:
 
@@ -194,6 +203,15 @@ subset = NetcdfSubset(
     bbox_lat=(40.75, 34.44),
     bbox_lon=(110.27, 114.59),
     target_vars=("tbb_07",),
+)
+```
+
+Full-disk selected variables example:
+
+```python
+subset = NetcdfSubset(
+    whole_file=True,
+    target_vars=("tbb_07", "tbb_14"),
 )
 ```
 
@@ -357,6 +375,18 @@ params = DownloadParams(
 )
 ```
 
+### Download full-disk FTP NetCDF with selected variables
+
+```python
+params = DownloadParams(
+    out_dir="data/ftp_full_vars",
+    netcdf_subset=NetcdfSubset(
+        whole_file=True,
+        target_vars=("tbb_07",),
+    ),
+)
+```
+
 ### Query the latest S3 cloud mask and then download it
 
 ```python
@@ -487,7 +517,7 @@ What to do:
 - try direct FTP first
 - reduce concurrency
 - increase retry count
-- if you later add a local fallback path, prefer full download then local crop
+- use whole-file download if you only need transfer stability
 
 ### Why do I get a dependency error for NetCDF subset?
 
@@ -548,4 +578,5 @@ Recommended simple starting points:
 
 - FTP HSD: `L1B` + `Rad` + `B07`
 - FTP NetCDF crop: `NetCDF` + `tbb_07`
+- FTP NetCDF full-disk selected vars: `NetCDF` + `whole_file=True` + `tbb_07`
 - S3 L2: `CMSK`

@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime as dt
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Callable
 
 
 @dataclass(frozen=True)
@@ -44,6 +45,16 @@ class NetcdfSubset:
 
 
 @dataclass(frozen=True)
+class DownloadEvent:
+    status: str
+    remote_path: str
+    completed: int
+    total: int
+    saved_path: Path | None = None
+    error: str = ""
+
+
+@dataclass(frozen=True)
 class QueryParams:
     source: str
     satellite: str
@@ -79,6 +90,7 @@ class DownloadParams:
     proxy: ProxyConfig | None = None
     ftp_block_size: int = 8 * 1024 * 1024
     netcdf_subset: NetcdfSubset | None = None
+    progress_callback: Callable[[DownloadEvent], None] | None = None
 
 
 @dataclass(frozen=True)

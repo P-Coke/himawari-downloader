@@ -38,6 +38,14 @@
 - S3 file query and raw download
 - Optional proxy support for FTP and S3
 
+## What's New in v0.1.2
+
+- FTP whole-file NetCDF downloads now use a direct FTP binary transfer path for better robustness.
+- FTP NetCDF query candidates are filtered to existing remote files before being returned.
+- Added download progress event support in the SDK (`DownloadEvent` and `DownloadParams.progress_callback`).
+- NetCDF subset now supports full-disk variable export by combining:
+  - `NetcdfSubset(whole_file=True, target_vars=(...))`
+
 ## Installation
 
 Base install:
@@ -124,6 +132,36 @@ result = client.download(
         ),
     ),
 )
+
+FTP NetCDF full-disk selected variable example:
+
+```python
+from himawari_downloader import DownloadParams, HimawariDownloader, NetcdfSubset, QueryParams
+
+client = HimawariDownloader(ftp_user="your_uid", ftp_password="your_password")
+
+query = QueryParams(
+    source="ftp",
+    satellite="H09",
+    product_level="L2",
+    product="NetCDF",
+    sector="FLDK",
+    mode="links",
+    data_format="netcdf",
+    remote_files=("/jma/netcdf/202503/19/NC_H09_20250319_0010_R21_FLDK.07001_06001.nc",),
+)
+
+result = client.download(
+    query,
+    DownloadParams(
+        out_dir="data/out",
+        netcdf_subset=NetcdfSubset(
+            whole_file=True,
+            target_vars=("tbb_07",),
+        ),
+    ),
+)
+```
 ```
 
 Proxy example:

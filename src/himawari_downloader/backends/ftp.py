@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import ftplib
 import threading
 from pathlib import Path
 
@@ -86,6 +87,8 @@ class FTPBackend(BaseBackend):
             paths = self._build_candidates(query, data_format, sector, timestamps)
         else:
             raise UnsupportedOperationError(f"FTP backend does not support mode '{query.mode}'.")
+        if data_format == "netcdf":
+            paths = self._filter_existing_paths(paths)
         return [parse_remote_file("ftp", path) for path in paths]
 
     def find_latest(self, query: QueryParams) -> list[RemoteFile]:
@@ -168,27 +171,33 @@ class FTPBackend(BaseBackend):
     def _download_netcdf(self, remote: str, out_path: Path, params: DownloadParams) -> None:
         xr = _require_xarray()
         subset = params.netcdf_subset
-        if subset is None or subset.whole_file:
+        if subset is None:
             self._download_binary(remote, out_path, params)
             return
-        if subset.bbox_lat is None or subset.bbox_lon is None:
-            raise ConfigurationError("NetCDF subset requires bbox_lat and bbox_lon.")
-        self._validate_japan_bbox(remote, subset.bbox_lat, subset.bbox_lon)
         fs = self._get_fs()
         with self._open(fs, remote, params) as file_obj:
             ds = xr.open_dataset(file_obj, engine="h5netcdf", chunks={}, decode_timedelta=False)
             try:
-                if "latitude" not in ds.coords or "longitude" not in ds.coords:
-                    raise ConfigurationError("latitude/longitude coordinates not found")
+                if subset.whole_file and not subset.target_vars:
+                    ds.close()
+                    self._download_binary(remote, out_path, params)
+                    return
                 variables = [name for name in subset.target_vars if name in ds.variables]
                 if not variables:
                     raise ConfigurationError("No target variables found in dataset.")
-                sliced = self._subset_by_bbox(ds[variables], subset.bbox_lat, subset.bbox_lon)
+                target_ds = ds[variables]
+                if not subset.whole_file:
+                    if subset.bbox_lat is None or subset.bbox_lon is None:
+                        raise ConfigurationError("NetCDF subset requires bbox_lat and bbox_lon.")
+                    if "latitude" not in ds.coords or "longitude" not in ds.coords:
+                        raise ConfigurationError("latitude/longitude coordinates not found")
+                    self._validate_japan_bbox(remote, subset.bbox_lat, subset.bbox_lon)
+                    target_ds = self._subset_by_bbox(target_ds, subset.bbox_lat, subset.bbox_lon)
                 if subset.compression_level > 0:
-                    encoding = {name: {"zlib": True, "complevel": subset.compression_level} for name in sliced.data_vars}
-                    sliced.to_netcdf(out_path, engine="h5netcdf", encoding=encoding)
+                    encoding = {name: {"zlib": True, "complevel": subset.compression_level} for name in target_ds.data_vars}
+                    target_ds.to_netcdf(out_path, engine="h5netcdf", encoding=encoding)
                 else:
-                    sliced.to_netcdf(out_path, engine="h5netcdf")
+                    target_ds.to_netcdf(out_path, engine="h5netcdf")
             except Exception:
                 if subset.fallback_full_download:
                     self._download_binary(remote, out_path.with_name(out_path.stem + "_full.nc"), params)
@@ -213,20 +222,38 @@ class FTPBackend(BaseBackend):
         )
 
     def _download_binary(self, remote: str, out_path: Path, params: DownloadParams) -> None:
-        fs = self._get_fs()
         try:
-            with self._open(fs, remote, params) as src, open(out_path, "wb") as dst:
-                while True:
-                    chunk = src.read(1024 * 1024)
-                    if not chunk:
-                        break
-                    dst.write(chunk)
+            with self._open_ftp_connection() as ftp, open(out_path, "wb") as dst:
+                ftp.retrbinary(
+                    f"RETR {remote}",
+                    dst.write,
+                    blocksize=max(1024 * 1024, params.ftp_block_size if params.ftp_block_size > 0 else 1024 * 1024),
+                )
         except FileNotFoundError as exc:
             raise RemoteFileNotFoundError(remote) from exc
+        except ftplib.error_perm as exc:
+            if "550" in str(exc) or "No such file" in str(exc):
+                raise RemoteFileNotFoundError(remote) from exc
+            raise
         except Exception as exc:
             if "550" in str(exc) or "No such file" in str(exc):
                 raise RemoteFileNotFoundError(remote) from exc
             raise
+
+    def _open_ftp_connection(self):
+        ftp = ftplib.FTP()
+        ftp.connect(self.ftp_host, 21, timeout=180)
+        ftp.login(self.ftp_user, self.ftp_password)
+        ftp.set_pasv(True)
+        return ftp
+
+    def _filter_existing_paths(self, paths: list[str]) -> list[str]:
+        fs = self._get_fs()
+        existing: list[str] = []
+        for path in paths:
+            if fs.exists(path):
+                existing.append(path)
+        return existing
 
     def _get_fs(self) -> fsspec.AbstractFileSystem:
         key = f"{self.ftp_host}|{self.ftp_user}"

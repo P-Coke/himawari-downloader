@@ -1,5 +1,6 @@
 from himawari_downloader.client import HimawariDownloader
 from himawari_downloader.models import (
+    DownloadEvent,
     DownloadParams,
     DownloadResult,
     NetcdfSubset,
@@ -9,6 +10,7 @@ from himawari_downloader.models import (
 )
 
 __all__ = [
+    "DownloadEvent",
     "DownloadParams",
     "DownloadResult",
     "HimawariDownloader",
